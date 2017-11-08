@@ -443,14 +443,7 @@ bool ElfFileImpl<ElfTypes>::SetMap(File* file, MemMap* map, std::string* error_m
                               header_->e_ident[EI_MAG3]);
     return false;
   }
-  uint8_t elf_class = (sizeof(Elf_Addr) == sizeof(Elf64_Addr)) ? ELFCLASS64 : ELFCLASS32;
-  if (elf_class != header_->e_ident[EI_CLASS]) {
-    *error_msg = StringPrintf("Failed to find expected EI_CLASS value %d in %s, found %d",
-                              elf_class,
-                              file->GetPath().c_str(),
-                              header_->e_ident[EI_CLASS]);
-    return false;
-  }
+
   if (ELFDATA2LSB != header_->e_ident[EI_DATA]) {
     *error_msg = StringPrintf("Failed to find expected EI_DATA value %d in %s, found %d",
                               ELFDATA2LSB,
@@ -1701,19 +1694,6 @@ ElfFile* ElfFile::Open(File* file,
   if (map == nullptr || map->Size() != EI_NIDENT) {
     return nullptr;
   }
-  uint8_t* header = map->Begin();
-  if (header[EI_CLASS] == ELFCLASS64) {
-    ElfFileImpl64* elf_file_impl = ElfFileImpl64::Open(file,
-                                                       writable,
-                                                       program_header_only,
-                                                       low_4gb,
-                                                       error_msg,
-                                                       requested_base);
-    if (elf_file_impl == nullptr) {
-      return nullptr;
-    }
-    return new ElfFile(elf_file_impl);
-  } else if (header[EI_CLASS] == ELFCLASS32) {
     ElfFileImpl32* elf_file_impl = ElfFileImpl32::Open(file,
                                                        writable,
                                                        program_header_only,
@@ -1724,13 +1704,6 @@ ElfFile* ElfFile::Open(File* file,
       return nullptr;
     }
     return new ElfFile(elf_file_impl);
-  } else {
-    *error_msg = StringPrintf("Failed to find expected EI_CLASS value %d or %d in %s, found %d",
-                              ELFCLASS32, ELFCLASS64,
-                              file->GetPath().c_str(),
-                              header[EI_CLASS]);
-    return nullptr;
-  }
 }
 
 ElfFile* ElfFile::Open(File* file, int mmap_prot, int mmap_flags, std::string* error_msg) {
@@ -1752,18 +1725,6 @@ ElfFile* ElfFile::Open(File* file, int mmap_prot, int mmap_flags, std::string* e
   if (map == nullptr || map->Size() != EI_NIDENT) {
     return nullptr;
   }
-  uint8_t* header = map->Begin();
-  if (header[EI_CLASS] == ELFCLASS64) {
-    ElfFileImpl64* elf_file_impl = ElfFileImpl64::Open(file,
-                                                       mmap_prot,
-                                                       mmap_flags,
-                                                       low_4gb,
-                                                       error_msg);
-    if (elf_file_impl == nullptr) {
-      return nullptr;
-    }
-    return new ElfFile(elf_file_impl);
-  } else if (header[EI_CLASS] == ELFCLASS32) {
     ElfFileImpl32* elf_file_impl = ElfFileImpl32::Open(file,
                                                        mmap_prot,
                                                        mmap_flags,
@@ -1773,13 +1734,6 @@ ElfFile* ElfFile::Open(File* file, int mmap_prot, int mmap_flags, std::string* e
       return nullptr;
     }
     return new ElfFile(elf_file_impl);
-  } else {
-    *error_msg = StringPrintf("Failed to find expected EI_CLASS value %d or %d in %s, found %d",
-                              ELFCLASS32, ELFCLASS64,
-                              file->GetPath().c_str(),
-                              header[EI_CLASS]);
-    return nullptr;
-  }
 }
 
 #define DELEGATE_TO_IMPL(func, ...) \
