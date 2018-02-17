@@ -207,8 +207,8 @@ art_cflags := \
 ifdef ART_IMT_SIZE
   art_cflags += -DIMT_SIZE=$(ART_IMT_SIZE)
 else
-  # Default is 64
-  art_cflags += -DIMT_SIZE=64
+  # Default is 43
+  art_cflags += -DIMT_SIZE=43
 endif
 
 ifeq ($(ART_USE_OPTIMIZING_COMPILER),true)
