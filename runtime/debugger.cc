@@ -715,7 +715,6 @@ void Dbg::Disconnected() {
   Runtime* runtime = Runtime::Current();
   runtime->GetThreadList()->SuspendAll(__FUNCTION__);
   Thread* self = Thread::Current();
-  ThreadState old_state = self->SetStateUnsafe(kRunnable);
 
   // Debugger may not be active at this point.
   if (IsDebuggerActive()) {
@@ -737,7 +736,6 @@ void Dbg::Disconnected() {
     }
     gDebuggerActive = false;
   }
-  CHECK_EQ(self->SetStateUnsafe(old_state), kRunnable);
   runtime->GetThreadList()->ResumeAll();
 
   {
